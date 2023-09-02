@@ -1,160 +1,181 @@
-//variables globales 
-const d = document;
-let nombre = d.querySelector(".nombre-pro");
-let presentacion = d.querySelector(".presentacion-pro");
-let precio = d.querySelector(".precio-pro");
-let imagen = d.querySelector(".imagen-pro");
-let btnGuardar = d.querySelector(".btn-guardar");
-let tabla = d.querySelector(".table tbody");
-let btnActualizar = d.querySelector(".btn-actualizar");
+// Variables globales
+let nombre = document.querySelector("#nombre-pro");
+let presentacion = document.querySelector("#presentacion-pro");
+let precio = document.querySelector("#precio-pro");
+let imagen = document.querySelector("#imagen-pro");
+let btnGuardar = document.querySelector(".btn-guardar");
+let tabla = document.querySelector(".table tbody");
+let btnActualizar = document.querySelector(".btn-actualizar");
+let buscarInput = document.querySelector(".buscar-input");
+let btnBuscar = document.querySelector(".btn-buscar");
+let productosKey = "productos";
+let productoSeleccionadoIndex = null;
 
-//agregar evento al navegador
-d.addEventListener("DOMContentLoaded",function(){
+// Función para inicializar la aplicación
+document.addEventListener("DOMContentLoaded", function () {
     mostrarDatos();
-})
-
-//agregar evento al boton
-btnGuardar.addEventListener("click",function() {
-    obtenerDatos();
-    limpiarTabla();
-    mostrarDatos();
- /*   alert("nombre: "+ nombre.value + "\n"
-         +"presentacion: " + presentacion.value+"\n"
-         +"precio: " + precio.value + "\n"
-         +"urlImagen: " + imagen.value); */
+    btnGuardar.addEventListener("click", guardarProducto);
+    btnActualizar.addEventListener("click", actualizarProducto);
+    btnBuscar.addEventListener("click", buscarProducto);
 });
 
-//funcion para obtener los datos del formulario
+// Función para obtener los datos del formulario
 function obtenerDatos() {
-    if(nombre.value == "" ||
-       presentacion.value == "" ||
-       precio.value == "" ||
-       imagen.value == ""){
-        alert("debes escribir un producto");
+    if (
+        nombre.value.trim() === "" ||
+        presentacion.value.trim() === "" ||
+        precio.value.trim() === "" ||
+        imagen.value.trim() === ""
+    ) {
+        alert("Debes completar todos los campos.");
+        return null;
     }
-    let datos = {
-        "nombre": nombre.value,
-        "presentacion" : presentacion.value,
-        "precio": precio.value,
-        "imagen": imagen.value
-    }
-    nombre.value = "";
-    presentacion.value = "";
-    precio.value = "" ;
-    imagen.value = "";
-    //mostrar en consola
-    console.log(datos)
-    //pasar el objeto a la funcion
-    guardarDatos(datos)
-}
-let productosKey = "productos"
-//funcion para guardar los datos en LocalStorage
-function guardarDatos( objeto ) {
-    let productos = [];
-    let proGuardadosEnLocal = JSON.parse(localStorage.getItem(productosKey));
-    if(proGuardadosEnLocal != null){
-        productos = proGuardadosEnLocal;
-    }
-    //guardar producto nuevo
-    productos.push(objeto);
-    //guardar en LocalStorage
-    localStorage.setItem(productosKey, JSON.stringify(productos));
-    alert("producto guardado con exito");
+
+    return {
+        nombre: nombre.value,
+        presentacion: presentacion.value,
+        precio: precio.value,
+        imagen: imagen.value,
+    };
 }
 
-//funcion para mostrar los datos guardados
+// Función para guardar un producto
+function guardarProducto() {
+    const datos = obtenerDatos();
+    if (!datos) return;
+
+    let productos = obtenerProductosGuardados();
+    productos.push(datos);
+    guardarProductos(productos);
+
+    limpiarCampos();
+    mostrarDatos();
+    alert("Producto guardado con éxito.");
+}
+
+// Función para obtener los productos guardados en el Local Storage
+function obtenerProductosGuardados() {
+    let productosGuardados = JSON.parse(localStorage.getItem(productosKey)) || [];
+    return productosGuardados;
+}
+
+// Función para guardar los productos en el Local Storage
+function guardarProductos(productos) {
+    localStorage.setItem(productosKey, JSON.stringify(productos));
+}
+
+// Función para mostrar los productos en la tabla
 function mostrarDatos() {
-    let productos = [];
-    let proGuardadosEnLocal = JSON.parse(localStorage.getItem(productosKey));
-    if(proGuardadosEnLocal!= null){
-        productos = proGuardadosEnLocal;
-    }
-    productos.forEach((dato, i) => {
-        let fila = d.createElement("tr");
+    limpiarTabla();
+    let productos = obtenerProductosGuardados();
+
+    productos.forEach((producto, i) => {
+        let fila = document.createElement("tr");
         fila.innerHTML = `
-        <td> ${i} </td>
-        <td> ${dato.nombre} </td>
-        <td> ${dato.presentacion} </td>
-        <td> ${dato.precio} </td>
-        <td> <img src="${dato.imagen}" width="20%"> </td>
-        <td> <span onclick="editarPro(${i})" class="btn btn-warning" >editar</span> - <span onclick="eliminarPro(${i})" class="btn btn-danger">eliminar</span> </td>
+            <td>${i + 1}</td>
+            <td>${producto.nombre}</td>
+            <td>${producto.presentacion}</td>
+            <td>${producto.precio}</td>
+            <td><img src="${producto.imagen}" width="20%"></td>
+            <td>
+                <button class="btn btn-warning" onclick="editarProducto(${i})">Editar</button>
+                <button class="btn btn-danger" onclick="eliminarProducto(${i})">Eliminar</button>
+            </td>
         `;
         tabla.appendChild(fila);
     });
 }
-//linmpiar tabla
 function limpiarTabla() {
-    let filasTabla = d.querySelectorAll(".table tbody tr");
-    for(let x=0; x < filasTabla.length; x++){
-        filasTabla[x].remove();
-    }
+    tabla.innerHTML = "";
 }
-
-function eliminarPro( posicion ){
-    let productos = [];
-    let proGuardadosEnLocal = JSON.parse(localStorage.getItem(productosKey));
-    if(proGuardadosEnLocal!= null){
-        productos = proGuardadosEnLocal;
-    }
-    let pro = productos.splice(posicion, 1);
-    //console.log(pro);
-    let confirmar = confirm("Deseas eliminar los productos");
-    if(confirm){
-        localStorage.setItem(productosKey, JSON.stringify(productos));
-        alert("Producto eliminado con exito");
-    }
-    limpiarTabla();
-    mostrarDatos();
-}
-
-//funcion editar un dato
-function editarPro(posicion) {
-    let productos = [];
-    let proGuardadosEnLocal = JSON.parse(localStorage.getItem(productosKey));
-    if(proGuardadosEnLocal!= null){
-        productos = proGuardadosEnLocal;
-    }
-    //pasar datos al formulario
-    nombre.value = productos[posicion].nombre
-    presentacion.value = productos[posicion].presentacion
-    precio.value = productos[posicion].precio
-    imagen.value =productos[posicion].imagen
-    btnActualizar.classList.toggle("d-none");
-    btnGuardar.classList.toggle("d-none");
-    //guardar informacion actual
-    btnActualizar.addEventListener("click",function(){
-    productos[posicion].nombre = nombre.value;
-    productos[posicion].presentacion = presentacion.value;
-    productos[posicion].precio = precio.value;
-    productos[posicion].imagen = imagen.value;
-    //guardar el dato actualizado
-    localStorage.setItem(productosKey,JSON.stringify(productos));
-    alert("productos actualizado con exito");
-    btnActualizar.classList.toggle("d-none");
-    btnGuardar.classList.toggle("d-none");
-    limpiarTabla();
-    mostrarDatos();
+function limpiarCampos() {
     nombre.value = "";
-    presentacion.value = ""
+    presentacion.value = "";
     precio.value = "";
     imagen.value = "";
-    });
- 
 }
+
+// Función para editar un producto
+function editarProducto(index) {
+    let productos = obtenerProductosGuardados();
+    let producto = productos[index];
+
+    nombre.value = producto.nombre;
+    presentacion.value = producto.presentacion;
+    precio.value = producto.precio;
+    imagen.value = producto.imagen;
+
+    btnGuardar.classList.add("d-none");
+    btnActualizar.classList.remove("d-none");
+    productoSeleccionadoIndex = index;
+
+    alert("Puedes editar el producto ahora.");
+}
+
+// Función para actualizar un producto
+function actualizarProducto() {
+    let productos = obtenerProductosGuardados();
+
+    if (productoSeleccionadoIndex !== null) {
+        productos[productoSeleccionadoIndex] = {
+            nombre: nombre.value,
+            presentacion: presentacion.value,
+            precio: precio.value,
+            imagen: imagen.value,
+        };
+
+        guardarProductos(productos);
+        limpiarCampos();
+        mostrarDatos();
+
+        btnGuardar.classList.remove("d-none");
+        btnActualizar.classList.add("d-none");
+        productoSeleccionadoIndex = null;
+
+        alert("Producto actualizado con éxito.");
+    }
+}
+
+// Función para eliminar un producto
+function eliminarProducto(index) {
+    let productos = obtenerProductosGuardados();
+    let confirmar = confirm("¿Estás seguro de que deseas eliminar este producto?");
+    if (confirmar) {
+        productos.splice(index, 1);
+        guardarProductos(productos);
+        mostrarDatos();
+        alert("Producto eliminado con éxito.");
+    }
+}
+
+// Función para buscar un producto
+function buscarProducto() {
+    let textoBuscado = buscarInput.value.toLowerCase().trim();
+    let productos = obtenerProductosGuardados();
+
+    limpiarTabla();
+
+    productos.forEach((producto, i) => {
+        if (producto.nombre.toLowerCase().includes(textoBuscado)) {
+            let fila = document.createElement("tr");
+            fila.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${producto.nombre}</td>
+                <td>${producto.presentacion}</td>
+                <td>${producto.precio}</td>
+                <td><img src="${producto.imagen}" width="20%"></td>
+                <td>
+                    <button class="btn btn-warning" onclick="editarProducto(${i})">Editar</button>
+                    <button class="btn btn-danger" onclick="eliminarProducto(${i})">Eliminar</button>
+                </td>
+            `;
+            tabla.appendChild(fila);
+        }
+    });
+}
+
 //ejecutar funcion
 //mostrarDatos();
-
-
-
-
-
-
-
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
