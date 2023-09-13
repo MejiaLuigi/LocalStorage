@@ -52,6 +52,10 @@ function guardarProducto() {
     mostrarDatos();
     alert("Producto guardado con éxito.");
 }
+// Función para guardar los productos en el Local Storage
+function guardarProductos(productos) {
+    localStorage.setItem(productosKey, JSON.stringify(productos));
+}
 
 // Función para obtener los productos guardados en el Local Storage
 function obtenerProductosGuardados() {
@@ -59,10 +63,6 @@ function obtenerProductosGuardados() {
     return productosGuardados;
 }
 
-// Función para guardar los productos en el Local Storage
-function guardarProductos(productos) {
-    localStorage.setItem(productosKey, JSON.stringify(productos));
-}
 
 // Función para mostrar los productos en la tabla
 function mostrarDatos() {
@@ -75,7 +75,7 @@ function mostrarDatos() {
             <td>${i + 1}</td>
             <td>${producto.nombre}</td>
             <td>${producto.presentacion}</td>
-            <td>${producto.precio}</td>
+            <td>${"$" + producto.precio}</td>
             <td><img src="${producto.imagen}" width="20%"></td>
             <td>
                 <button class="btn btn-warning" onclick="editarProducto(${i})">Editar</button>
@@ -162,7 +162,7 @@ function buscarProducto() {
                 <td>${i + 1}</td>
                 <td>${producto.nombre}</td>
                 <td>${producto.presentacion}</td>
-                <td>${producto.precio}</td>
+                <td>${"$" +producto.precio}</td>
                 <td><img src="${producto.imagen}" width="20%"></td>
                 <td>
                     <button class="btn btn-warning" onclick="editarProducto(${i})">Editar</button>
@@ -171,8 +171,28 @@ function buscarProducto() {
             `;
             tabla.appendChild(fila);
         }
-    });
+    })
 }
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //ejecutar funcion
 //mostrarDatos();
